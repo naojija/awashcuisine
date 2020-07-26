@@ -1,10 +1,15 @@
 import React, { Component } from 'react';
 import {
     Navbar, NavbarBrand, Nav, NavbarToggler, Collapse, NavItem, Jumbotron,
-    Button, Modal, ModalHeader, ModalBody,
-    Form, FormGroup, Input, Label
-} from 'reactstrap';
+    Button, Modal, ModalHeader, ModalBody, Label, Col, Row} from 'reactstrap';
 import { NavLink } from 'react-router-dom';
+import { Control, Form, Errors } from 'react-redux-form';
+
+const required = val => val && val.length;
+const maxLength = len => val => !val || (val.length <= len);
+const minLength = len => val => val && (val.length >= len);
+const isNumber = val => !isNaN(+val);
+const validEmail = val => /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(val);
 
 class Header extends Component {
     constructor(props) {
@@ -27,7 +32,7 @@ class Header extends Component {
         this.handleToGo = this.handleToGo.bind(this);
         this.handleCatering = this.handleCatering.bind(this);
     }
-    
+
     toggleNav() {
         this.setState({
             isNavOpen: !this.state.isNavOpen
@@ -50,33 +55,35 @@ class Header extends Component {
             isToGoModalOpen: !this.state.isToGoModalOpen
         });
     }
-    
+
     toggleCateringModal() {
         this.setState({
             isCateringModalOpen: !this.state.isCateringModalOpen
         });
     }
 
-    handleLogin(event) {
-        alert(`Username: ${this.username.value} Password: ${this.password.value} Remember: ${this.remember.checked}`);
+    handleLogin(values) {
+        this.props.resetLoginForm();
+        //alert(`Username: ${this.username.value} Password: ${this.password.value} Remember: ${this.remember.checked}`);
+        console.log('Current State is: ' + JSON.stringify(values));
+        alert('Current State is: ' + JSON.stringify(values));
         this.toggleLoginModal();
-        event.preventDefault();
+        //event.preventDefault();
     }
-    // ReserveType: ${this.reserveType.value} Date: ${this.date.value} ${this.time.value}
-    handleReserve(event) {
-        alert(`Customername: ${this.customername.value} ReserveType: ${this.reserveType.value} NumOfGuests: ${this.guest.value} Date: ${this.date.value} ${this.time.value}`);
+    handleReserve(values) {
+        this.props.resetReserveForm();
+        this.props.postReserve(values);
+        //console.log('Current State is: ' + JSON.stringify(values));
+        //alert('Current State is: ' + JSON.stringify(values));
         this.toggleReserveModal();
-        event.preventDefault();
     }
 
     handleToGo(event) {
-        //alert(`Customername: ${this.customername.value} ReserveType: ${this.reserveType.value} Date: ${this.date.value} ${this.time.value}`);
         this.toggleToGoModal();
         event.preventDefault();
     }
 
     handleCatering(event) {
-        //alert(`Customername: ${this.customername.value} ReserveType: ${this.reserveType.value} Date: ${this.date.value} ${this.time.value}`);
         this.toggleCateringModal();
         event.preventDefault();
     }
@@ -96,7 +103,7 @@ class Header extends Component {
                 </Jumbotron>
                 <Navbar dark sticky="top" expand="md">
                     <div className="container">
-                        <NavbarBrand className="mr-auto" href="/"><img src="/assets/images/LogoAwash.png" height="30" width="30" alt="AwashCuisine Logo" /></NavbarBrand>
+                        <NavbarBrand className="mr-auto" href="/"><img src="/assets/images/awashLogo.png" height="30" width="30" alt="" /></NavbarBrand>
                         <NavbarToggler onClick={this.toggleNav} />
                         <Collapse isOpen={this.state.isNavOpen} navbar>
                             <Nav navbar>
@@ -147,24 +154,70 @@ class Header extends Component {
                 <Modal isOpen={this.state.isLoginModalOpen} toggle={this.toggleLoginModal}>
                     <ModalHeader toggle={this.toggleLoginModal}><strong>Login</strong></ModalHeader>
                     <ModalBody>
-                        <Form onSubmit={this.handleLogin}>
-                            <FormGroup>
-                                <Label htmlFor="username">Username</Label>
-                                <Input type="text" id="username" name="username"
-                                    innerRef={input => this.username = input} />
-                            </FormGroup>
-                            <FormGroup>
-                                <Label htmlFor="password">Password</Label>
-                                <Input type="password" id="password" name="password"
-                                    innerRef={input => this.password = input} />
-                            </FormGroup>
-                            <FormGroup check>
-                                <Label check>
-                                    <Input type="checkbox" name="remember"
-                                        innerRef={input => this.remember = input} />
-                                    Remember me
-                                </Label>
-                            </FormGroup>
+                        <Form model="loginForm" onSubmit={values => this.handleLogin(values)}>
+                            <Row className="form-group">
+                                <Label htmlFor="username" md={2}>Username</Label>
+                                <Col md={10}>
+                                    <Control.text model=".username" id="username" name="username"
+                                        placeholder="username"
+                                        className="form-control"
+                                        validators={{
+                                            required,
+                                            minLength: minLength(2),
+                                            maxLength: maxLength(15)
+                                        }}
+                                    />
+                                    <Errors
+                                        className="text-danger"
+                                        model=".username"
+                                        show="touched"
+                                        component="div"
+                                        messages={{
+                                            required: 'Required',
+                                            minLength: 'Must be at least 2 characters',
+                                            maxLength: 'Must be 15 characters or less'
+                                        }}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Label htmlFor="password" md={2}>Password</Label>
+                                <Col md={10}>
+                                    <Control.input model=".password" type="password" id="password" name="password"
+                                        className="form-control"
+                                        validators={{
+                                            required,
+                                            minLength: minLength(10),
+                                            maxLength: maxLength(15)
+                                        }}
+                                    />
+                                    <Errors
+                                        className="text-danger"
+                                        model=".password"
+                                        show="touched"
+                                        component="div"
+                                        messages={{
+                                            required: 'Required',
+                                            minLength: 'Must be at least 10 characters',
+                                            maxLength: 'Must be 15 characters or less'
+                                        }}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Col md={{ size: 4, offset: 2 }}>
+                                    <div className="form-check">
+                                        <Label check>
+                                            <Control.checkbox
+                                                model=".remember"
+                                                name="remember"
+                                                className="form-check-input"
+                                            /> {' '}
+                                            <strong>Remember Me</strong>
+                                        </Label>
+                                    </div>
+                                </Col>
+                            </Row>
                             <Button type="submit" value="submit" color="primary">Login</Button>
                         </Form>
                     </ModalBody>
@@ -180,34 +233,137 @@ class Header extends Component {
                             </div>
                             <p class="text-info"><strong>Or reserve the cuisine by completing the below form</strong></p>
                         </div>
-                        <Form onSubmit={this.handleReserve}>
-                            <FormGroup>
-                                <Label htmlFor="customername"><strong>Customer Name</strong></Label>
-                                <Input type="text" id="customername" name="customername" className="form-control" innerRef={input => this.customername = input} />
-                            </FormGroup>
-                            <FormGroup>
-                                <Label htmlFor="reserveType"><strong>Reserve Type</strong></Label> 
-                                <Input type= "select" name="reserveType" id="reserveType" className="form-control" innerRef={input => this.reserveType = input}>
-                                    <option selected>Select...</option>
-                                    <option value="partial">Partial</option>
-                                    <option value="entire">Entire</option>
-                                </Input>                  
-                            </FormGroup>
-                            <FormGroup>
-                                <Label htmlFor="guest" ><strong>Specify # of guests</strong></Label>
-                                <div>
-                                    <Input type = "textarea" id="guest" name="guest"
-                                        rows="3"
-                                        className="form-control" innerRef={input => this.guest = input}
+                        <Form model="reserveForm" onSubmit={values => this.handleReserve(values)}>
+                            <Row className="form-group">
+                                <Label htmlFor="customerName" md={2}>Customer FullName</Label>
+                                <Col md={10}>
+                                    <Control.text model=".customerName" id="customerName" name="customerName"
+                                        placeholder="customerName"
+                                        className="form-control"
+                                        validators={{
+                                            required,
+                                            minLength: minLength(2),
+                                            maxLength: maxLength(15)
+                                        }}
                                     />
-                                </div>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label htmlFor="date"><strong>Date</strong>
-                                    <Input type="date" name="date" id="date" placeholder="Date" innerRef={input => this.date = input} />
-                                    <Input type="time" name="time" id="date" placeholder="Time" innerRef={input => this.time = input} />
-                                </Label>
-                            </FormGroup>
+                                    <Errors
+                                        className="text-danger"
+                                        model=".customerName"
+                                        show="touched"
+                                        component="div"
+                                        messages={{
+                                            required: 'Required',
+                                            minLength: 'Must be at least 2 characters',
+                                            maxLength: 'Must be 15 characters or less'
+                                        }}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Label htmlFor="phoneNum" md={2}>Phone</Label>
+                                <Col md={10}>
+                                    <Control.text model=".phoneNum" id="phoneNum" name="phoneNum"
+                                        placeholder="Phone number"
+                                        className="form-control"
+                                        validators={{
+                                            required,
+                                            minLength: minLength(10),
+                                            maxLength: maxLength(15),
+                                            isNumber
+                                        }}
+                                    />
+                                    <Errors
+                                        className="text-danger"
+                                        model=".phoneNum"
+                                        show="touched"
+                                        component="div"
+                                        messages={{
+                                            required: 'Required',
+                                            minLength: 'Must be at least 10 numbers',
+                                            maxLength: 'Must be 15 numbers or less',
+                                            isNumber: 'Must be a number'
+                                        }}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Label htmlFor="email" md={2}>Email</Label>
+                                <Col md={10}>
+                                    <Control.text model=".email" id="email" name="email"
+                                        placeholder="Email"
+                                        className="form-control"
+                                        validators={{
+                                            required,
+                                            validEmail
+                                        }}
+                                    />
+                                    <Errors
+                                        className="text-danger"
+                                        model=".email"
+                                        show="touched"
+                                        component="div"
+                                        messages={{
+                                            required: 'Required',
+                                            validEmail: 'Invalid email address'
+                                        }}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Label htmlFor="reserveType" md={2}>Reserve Type</Label>
+                                <Col md={10}>
+                                    <Control.select model=".reserveType" name="reserveType" id="reserveType"
+                                        className="form-control">
+                                        <option>Select...</option>
+                                        <option>Partial</option>
+                                        <option>Entire</option>
+                                    </Control.select>
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Label htmlFor="numOfGuests" md={2}>Guests Count</Label>
+                                <Col md={10}>
+                                    <Control.text model=".numOfGuests" id="numOfGuests" name="numOfGuests"
+                                        placeholder="Guests Count"
+                                        className="form-control"
+                                        validators={{
+                                            required,
+                                            isNumber
+                                        }}
+                                    />
+                                    <Errors
+                                        className="text-danger"
+                                        model=".numOfGuests"
+                                        show="touched"
+                                        component="div"
+                                        messages={{
+                                            required: 'Required',
+                                            isNumber: 'Must be a number'
+                                        }}
+                                    />
+                                </Col>
+                                <Label htmlFor="additionalInfo" md={2}>Additional Info</Label>
+                                <Col md={10}>
+                                    <Control.textarea model=".additionalInfo" id="additionalInfo" name="additionalInfo"
+                                        rows="3"
+                                        className="form-control"
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Label htmlFor="date" md={2}>Date</Label>
+                                <Col md={10}>
+                                    <Control.input model=".date" type="date" name="date" id="date"
+                                        className="form-control"
+                                    />
+                                </Col>
+                                <Label htmlFor="time" md={2}>Time</Label>
+                                <Col md={10}>
+                                    <Control.input model=".time" type="time" name="time" id="time"
+                                        className="form-control"
+                                    />
+                                </Col>
+                            </Row>
                             <Button type="submit" value="submit" color="primary">Reserve</Button>
                         </Form>
                     </ModalBody>

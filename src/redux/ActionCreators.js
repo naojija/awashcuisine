@@ -145,3 +145,107 @@ export const addSpecials = specials => ({
     type: ActionTypes.ADD_SPECIALS,
     payload: specials
 });
+
+//
+export const fetchServices = () => (dispatch) => {
+    
+    dispatch(servicesLoading());
+
+    return fetch(baseUrl + 'services')
+        .then(response => {
+                if (response.ok) {
+                    return response;
+                } else {
+                    const error = new Error(`Error ${response.status}: ${response.statusText}`);
+                    error.response = response;
+                    throw error;
+                }
+            },
+            error => {
+                const errMess = new Error(error.message);
+                throw errMess;
+            }
+        )
+        .then(response => response.json())
+        .then(services => dispatch(addServices(services)))
+        .catch(error => dispatch(servicesFailed(error.message)));
+};
+
+export const servicesLoading = () => ({
+    type: ActionTypes.SERVICES_LOADING
+});
+
+export const servicesFailed = errMess => ({
+    type: ActionTypes.SERVICES_FAILED,
+    payload: errMess
+});
+
+export const addServices = services => ({
+    type: ActionTypes.ADD_SERVICES,
+    payload: services
+});
+
+//
+export const postFeedback = (feedback) => () => {
+
+
+    return fetch(baseUrl + 'feedback', {
+            method: "POST",
+            body: JSON.stringify(feedback),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => {
+                if (response.ok) {
+                    return response;
+                } else {
+                    const error = new Error(`Error ${response.status}: ${response.statusText}`);
+                    error.response = response;
+                    throw error;
+                }
+            },
+            error => { throw error; }
+        )
+        .then(response => response.json())
+        .then(response => { 
+            alert("Thank you for your feedback " + JSON.stringify(response))
+        })
+        .catch(error => {
+            console.log('post feedback', error.message);
+            alert('Your feedback could not be posted\nError: ' + error.message);
+        });
+};
+
+export const postReserve = (reserveinfo) => () => {
+
+
+    return fetch(baseUrl + 'reserveinfo', {
+            method: "POST",
+            body: JSON.stringify(reserveinfo),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => {
+                if (response.ok) {
+                    return response;
+                } else {
+                    const error = new Error(`Error ${response.status}: ${response.statusText}`);
+                    error.response = response;
+                    throw error;
+                }
+            },
+            error => { throw error; }
+        )
+        .then(response => response.json())
+        .then(response => { 
+            alert("Thank you for your reserve info " + JSON.stringify(response))
+        })
+        .catch(error => {
+            console.log('post reserve info', error.message);
+            alert('Your reserve info could not be posted\nError: ' + error.message);
+        });
+};
+
+

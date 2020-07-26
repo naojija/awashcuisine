@@ -7,7 +7,7 @@ import Home from './HomeComponent';
 import Contact from './ContactComponent';
 import About from './AboutComponent';
 import { Switch, Route, Redirect, withRouter } from 'react-router-dom'
-import { postReview, fetchEnteries,fetchReviews,fetchSpecials } from '../redux/ActionCreators';
+import { postReview, postFeedback,postReserve, fetchEnteries,fetchReviews,fetchSpecials, fetchServices} from '../redux/ActionCreators';
 import { connect } from 'react-redux';
 import { actions } from 'react-redux-form';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
@@ -23,9 +23,14 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = {
     postReview: (enteryId, rating, author, text) => (postReview(enteryId, rating, author, text)),
+    postFeedback: (feedback) => (postFeedback(feedback)),
+    postReserve: (reserveinfo) => (postReserve(reserveinfo)),
     fetchEnteries: () => (fetchEnteries()),
     resetFeedbackForm: () => (actions.reset('feedbackForm')),
+    resetReserveForm: () => (actions.reset('reserveForm')),
+    resetLoginForm: () => (actions.reset('loginForm')),
     fetchReviews: () => (fetchReviews()),
+    fetchServices: () => (fetchServices()),
     fetchSpecials: () => (fetchSpecials())
 };
 class Main extends Component {
@@ -33,6 +38,7 @@ class Main extends Component {
         this.props.fetchEnteries();
         this.props.fetchReviews();
         this.props.fetchSpecials();
+        this.props.fetchServices();
     }
     render() {
         const HomePage = () => {
@@ -44,7 +50,9 @@ class Main extends Component {
                     special={this.props.specials.specials.filter(special => special.featured)[0]}
                     specialLoading={this.props.specials.isLoading}
                     specialErrMess={this.props.specials.errMess}
-                    service={this.props.services.filter(service => service.featured)[0]}
+                    service={this.props.services.services.filter(service => service.featured)[0]}
+                    serviceLoading={this.props.services.isLoading}
+                    serviceErrMess={this.props.services.errMess}
                 />
             );
         }
@@ -61,16 +69,17 @@ class Main extends Component {
                 />
             );
         };
+        //
         return (
             <div>
-                <Header />
+                <Header resetReserveForm={this.props.resetReserveForm} resetLoginForm={this.props.resetLoginForm} postReserve={this.props.postReserve}/>
                 <TransitionGroup>
                     <CSSTransition key={this.props.location.key} classNames="page" timeout={300}>
                         <Switch>
                             <Route path='/home' component={HomePage} />
                             <Route exact path='/menu' render={() => <Menu enteries={this.props.enteries} />} />
                             <Route path='/menu/:enteryId' component={EnteryWithId} />
-                            <Route exact path='/contactus' render={() => <Contact resetFeedbackForm={this.props.resetFeedbackForm} /> } />
+                            <Route exact path='/contactus' render={() => <Contact resetFeedbackForm={this.props.resetFeedbackForm} postFeedback={this.props.postFeedback} /> } />
                             <Route exact path='/aboutus' render={() => <About services={this.props.services} /> } />
                             <Redirect to='/home' />
                         </Switch>

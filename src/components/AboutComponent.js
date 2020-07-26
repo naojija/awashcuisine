@@ -1,32 +1,63 @@
 import React from 'react';
 import { Breadcrumb, BreadcrumbItem, Card, CardBody, CardHeader, Media } from 'reactstrap';
 import { Link } from 'react-router-dom';
-    function RenderService({service}){
-        if(service){
-            return(
-                <React.Fragment>
-                    <Media object src={service.image} alt={service.name} width="150"/>
-                    <Media body className="ml-5 mb-4">
-                        <Media heading>
-                            {service.name}
-                        </Media>
-                        {service.description}
-                    </Media>
-                </React.Fragment>
-            );
-        }
+import { Loading } from './LoadingComponent';
+import { baseUrl } from '../shared/baseUrl';
+import { Fade, Stagger } from 'react-animation-components';
+
+function RenderService({ service }) {
+    if (service) {
         return (
-            <div />
+            <React.Fragment>
+                <Media object src={baseUrl + service.image} alt={service.name} width="150" />
+                <Media body className="ml-5 mb-4">
+                    <Media heading>
+                        {service.name}
+                    </Media>
+                    {service.description}
+                </Media>
+            </React.Fragment>
         );
     }
-    function About(props) {
-        const services = props.services.map(service => {
-            return (
-                <Media tag="li" key = {service.id}>
-                    <RenderService service = {service} />
+    return (
+        <div />
+    );
+}
+//
+function ServiceList(props) {
+    const services = props.services.services.map(service => {
+        return (
+            <Fade in key={service.id}>
+                <Media tag="li" >
+                    <RenderService service={service} />
                 </Media>
-            );
-        });
+            </Fade>
+        );
+    });
+    if (props.services.isLoading) {
+        return (
+            <Loading />
+        );
+    }
+    if (props.services.errMess) {
+        return (
+            <div className="col">
+                <h4>{props.services.errMess}</h4>
+            </div>
+        );
+    }
+    return (
+        <div className="col mt-4">
+            <Media list>
+                <Stagger in>
+                    {services}
+                </Stagger>
+            </Media>
+        </div>
+    )
+}
+//
+function About(props) {
     return (
         <div className="container">
             <div className="row">
@@ -79,11 +110,7 @@ import { Link } from 'react-router-dom';
                 <div className="col-12">
                     <h3>Awash Cuisine Dishes</h3>
                 </div>
-                <div className="col mt-4">
-                    <Media list>
-                        {services}
-                    </Media>
-                </div>
+                <ServiceList services={props.services} />
             </div>
         </div>
     );
